@@ -2,24 +2,33 @@
 /*************************** Modules Importation ***************************/
 // import  express module
 const express = require("express");
-
-
+require('dotenv').config();
 
 // import body-parser module 
 const bodyParser = require("body-parser");
 // import mongoose module
-// const mongoose = require("mongoose");
 const mongoose = require("mongoose");
-// mongoose.connect()
 // schoolDB => DtaBase name
-mongoose.connect('mongodb://127.0.0.1:27017/schoolDB');
-// import bcrypt module
+const dbURI = process.env.DB_URI;
+
+mongoose.connect(dbURI,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log('Successfully connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+  });
+  
+// import bcrypt Module
 const bcrypt = require("bcrypt");
-// import jsonwebtoken module
+// import jsonwebtoken Module
 const jwt = require('jsonwebtoken');
-// import express-session module
+// import express-session Module
 const session = require('express-session');
-// import axios module
+// import axios Module
 const axios = require('axios');
 // import path Module
 const path = require('path');
@@ -36,6 +45,15 @@ const app = express();
 app.get('/home', (req, res) => {
     res.send('Hello World!')
   })
+
+
+
+/*************************** Models Importation ***************************/
+const User = require("./models/user");
+const Course = require("./models/course");
+
+
+
 
 
 
