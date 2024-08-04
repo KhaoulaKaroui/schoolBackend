@@ -184,6 +184,47 @@ app.post("/api/users/login", (req, res) => {
 
 
 
+//***** Course */
+// Business Logic: Add Course
+app.post("/api/courses", (req, res) => {
+    //instructions
+    console.log("Here into BL : Add Course", req.body);
+    // Find Teacher By Id
+    User.findById(req.body.teacherId).then(
+        (doc) => {
+            console.log("Here Teacher By ID", doc);
+            if (!doc) {
+                res.json({ msg: "Teacher Not Found" });
+            } else {
+                let course = new Course(
+                    {
+                        name: req.body.name,
+                        description: req.body.description,
+                        duration: req.body.duration,
+                        teacherId: req.body.teacherId,
+                        // teacherId: doc._id,
+                    }
+                );
+                course.save(
+                    (err, courseObj) => {
+                        console.log("Here error after save", err);
+                        console.log("Here courseObj after save", courseObj);
+                        if (err) {
+                            res.json({ msg: "Course Not Saved" })
+                        } else {
+                            doc.courses.push(courseObj);
+                            // mise à jour de Teacher ( Tableu des courses)
+                            doc.save();
+                            res.json({ msg: "Course Added with Success" })
+                        }
+                    }
+                );
+            }
+        }
+    )
+    
+});
+
 
 
 

@@ -3,7 +3,9 @@ const mongoose = require ("mongoose");
 // create course Schema
 const courseSchema = mongoose.Schema({
     name : String,
-    description : String
+    description : String,
+    duration : String,
+    teacherId : String
 });
 // affect name to Schema
 const course = mongoose.model("Course", courseSchema);
