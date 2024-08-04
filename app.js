@@ -10,18 +10,6 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 // schoolDB => DtaBase name
 const dbURI = process.env.DB_URI;
-
-mongoose.connect(dbURI,{
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log('Successfully connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-  });
-  
 // import bcrypt Module
 const bcrypt = require("bcrypt");
 // import jsonwebtoken Module
@@ -35,28 +23,25 @@ const path = require('path');
 // import multer Module
 const multer = require('multer');
 
-
-
-
+/*************************** Models Importation ***************************/
+const User = require("./models/user");
+const Course = require("./models/course");
 /*************************** Express Application ***************************/
 // create express application
 const app = express();
 
-app.get('/home', (req, res) => {
-    res.send('Hello World!')
+// connect to DB
+mongoose.connect(dbURI,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true
   })
-
-
-
-/*************************** Models Importation ***************************/
-const User = require("./models/user");
-const Course = require("./models/course");
-
-
-
-
-
-
+  .then(() => {
+    console.log('Successfully connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+  });
+  
 
 /*************************** App Configuration ***************************/
 app.use(bodyParser.json());
@@ -89,7 +74,9 @@ app.use((req, res, next) => {
 });
 
 // Configuration Express-Session Module // ** Secret Key **
-const secretKey = 'croco2024-kh';
+// const secretKey = 'croco2024-kh';
+const secretKey = process.env.SECRET_KEY;
+
 app.use(session({
     secret: secretKey,
 }));
@@ -120,9 +107,80 @@ const storageConfig = multer.diskStorage({
 });
 
 
+//***** User */
+// Business Logic: Signup : Add User
+app.post("/api/users/signup", multer({ storage: storageConfig }).single("img"), (req, res) => {
+    //instructions
+    console.log("Here into BL : Signup  (Add User)", req.body);
+    console.log("Here into BL : Signup", req.file);
+    User.findOne({ email: req.body.email }).then(
+        (response) => {
+            console.log("User exist , Here User", response);
+            if (!response) {
+                bcrypt.hash(req.body.pwd, 10).then(
+                    (cryptedPwd) => {
+                        console.log("Here crypted Pwd"), cryptedPwd;
+                        req.body.pwd = cryptedPwd;
+                        if (req.file) {
+                            req.body.path = `http://localhost:3000/shortCut/${req.file.filename}`;
+                        } else {
+                            req.body.path = "http://localhost:3000/shortCut/avatar.png";
+
+                        }
+
+                        ;
+                        let user = new User(req.body);
+                        user.save();
+                        res.json({ isAdded: true });
+                    }
+                );
+            } else {
+                res.json({ isAdded: false });
+            }
+        }
+    );
 
 
+});
 
+// Business Logic: Login : 
+app.post("/api/users/login", (req, res) => {
+    console.log("Here User", req.body);
+    // Check If User Exist By Email
+    User.findOne({ email: req.body.email }).then(
+        (response) => {
+            console.log("Here response", response);
+            if (!response) {
+                // User Doesn't exist by Email
+                res.json({ msg: "Check Your Email" });
+            } else {
+                // User Exist ===> Compare Pwd
+                bcrypt.compare(req.body.pwd, response.pwd).then(
+                    (cryptedResult) => {
+                        console.log("Here cryptedResult", cryptedResult);
+                        if (!cryptedResult) {
+                            // Pwd is Not correct
+                            res.json({ msg: "Check Your Pwd" });
+                        } else {
+                            // Pwd is Correct
+                            let userToSend = {
+                                role: response.role,
+                                firstName: response.firstName,
+                                lastName: response.lastName,
+                                email: response.email,
+                                id: response._id
+                            };
+                            const token = jwt.sign(userToSend, secretKey, { expiresIn: '2h' });
+                            // console.log("Here Token / jeton", token);
+                            res.json({ msg: "Welcome", user: token });
+
+                        }
+                    }
+                )
+            }
+        }
+    )
+});
 
 
 
