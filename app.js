@@ -182,6 +182,15 @@ app.post("/api/users/login", (req, res) => {
     )
 });
 
+// Business Logic: Get All Users
+app.get("/api/users", (req, res) => {
+    // Instructions
+    console.log("Here into BL : Get All Users");
+    User.find().then(
+        (docs) => {
+            res.json({ users: docs });
+        });
+});
 
 
 //***** Course */
@@ -212,18 +221,86 @@ app.post("/api/courses", (req, res) => {
                         if (err) {
                             res.json({ msg: "Course Not Saved" })
                         } else {
-                            doc.courses.push(courseObj);
-                            // mise à jour de Teacher ( Tableu des courses)
-                            doc.save();
-                            res.json({ msg: "Course Added with Success" })
+                            // doc.courses.push(courseObj);
+                            // // mise à jour de Teacher ( Tableu des courses)
+                            // doc.save();
+                            // res.json({ msg: "Course Added with Success" })
+                         // Ensure the courses array is initialized
+                         if (!doc.courses) {
+                            doc.courses = [];
                         }
+                        doc.courses.push(courseObj);
+                        // mise à jour de Teacher ( Tableu des courses)
+                        doc.save().then(() => {
+                            res.json({ msg: "Course Added with Success" });
+                        }).catch((saveErr) => {
+                            console.error("Error saving teacher document:", saveErr);
+                            res.json({ msg: "Course Added but Teacher Update Failed" });
+                        });
+                    }
                     }
                 );
             }
         }
-    )
+    ).catch((findErr) => {
+        console.error("Error finding teacher by ID:", findErr);
+        res.json({ msg: "Error finding teacher" });
     
 });
+});
+// Business Logic: Edit Course
+app.put("/api/courses", (req, res) => {
+    //instructions
+    console.log("Here into BL : Edit Course", req.body);
+    Course.updateOne({ _id: req.body._id }, req.body).then(
+        (updateResponse) => {
+            console.log("Here updateResponse Course", updateResponse);
+            if (updateResponse.nModified == 1) {
+                res.json({ isEdited: "success" });
+            } else {
+                res.json({ isEdited: "failed" });
+            }
+        }
+    )
+});
+
+// Business Logic: Get All Courses
+app.get("/api/courses", (req, res) => {
+    //instructions
+    console.log("Here into BL : Get All Courses");
+    Course.find().then(
+        (docs) => {
+            res.json({ courses: docs });
+        });
+});
+
+// Business Logic: Delete Course
+app.delete("/api/courses/:id", (req, res) => {
+    //instructions
+    console.log("Here into BL : Delete Course", req.params.id);
+    Course.deleteOne({ _id: req.params.id }).then(
+        (deleteResult) => {
+            console.log("Here delete Course Result", deleteResult);
+            if (deleteResult.deletedCount == 1) {
+                res.json({ isDeleted: true });
+            } else {
+                res.json({ isDeleted: false });
+            }
+        }
+    )
+});
+
+// Business Logic: Get Course By ID
+app.get("/api/courses/:id", (req, res) => {
+    //instructions 
+    console.log("Here into BL : Get Course By ID", req.params.id);
+    Course.findById(req.params.id).then(
+        (doc) => {
+            res.json({ course: doc });
+        });
+});
+
+
 
 
 

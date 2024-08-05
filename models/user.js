@@ -1,5 +1,6 @@
 // import mongoose module
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 // create user Schema
 const userSchema = mongoose.Schema({
     firstName: String,
@@ -12,7 +13,8 @@ const userSchema = mongoose.Schema({
     cv: String,
     telChild: String,
     pathPhoto: String,
-    role: String
+    role: String,
+    courses: [{ type: Schema.Types.ObjectId, ref: 'Course' }]
 });
 // affect Name to userSchema
 const user = mongoose.model("User", userSchema);
