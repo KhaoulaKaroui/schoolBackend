@@ -10,11 +10,9 @@ const userSchema = mongoose.Schema({
     email: String,
     pwd: String,
     speciality: String,
-    cv: String,
     telChild: String,
     pathPhoto: String,
     role: String,
-    courses: [{ type: Schema.Types.ObjectId, ref: 'Course' }]
 });
 // affect Name to userSchema
 const user = mongoose.model("User", userSchema);

@@ -93,6 +93,7 @@ const storageConfig = multer.diskStorage({
     // destination
     destination: (req, file, cb) => {
         const isValid = MIME_TYPE[file.mimetype];
+        console.log(isValid)
         if (isValid) {
             cb(null, 'backend/photos')
         }
@@ -109,7 +110,7 @@ const storageConfig = multer.diskStorage({
 
 //***** User */
 // Business Logic: Signup : Add User
-app.post("/api/users/signup", multer({ storage: storageConfig }).single("img"), (req, res) => {
+app.post("/api/users/signup", multer({ storage: storageConfig }).single("pathPhoto"), (req, res) => {
     //instructions
     console.log("Here into BL : Signup  (Add User)", req.body);
     console.log("Here into BL : Signup", req.file);
@@ -122,9 +123,9 @@ app.post("/api/users/signup", multer({ storage: storageConfig }).single("img"), 
                         console.log("Here crypted Pwd"), cryptedPwd;
                         req.body.pwd = cryptedPwd;
                         if (req.file) {
-                            req.body.path = `http://localhost:3000/shortCut/${req.file.filename}`;
+                            req.body.pathPhoto = `http://localhost:3000/shortCut/${req.file.filename}`;
                         } else {
-                            req.body.path = "http://localhost:3000/shortCut/avatar.png";
+                            req.body.pathPhoto = "http://localhost:3000/shortCut/avatar.png";
 
                         }
 
