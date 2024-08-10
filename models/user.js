@@ -13,6 +13,10 @@ const userSchema = mongoose.Schema({
     telChild: String,
     pathPhoto: String,
     role: String,
+    courses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+      }]
 });
 // affect Name to userSchema
 const user = mongoose.model("User", userSchema);

@@ -110,10 +110,11 @@ const storageConfig = multer.diskStorage({
 
 //***** User */
 // Business Logic: Signup : Add User
-app.post("/api/users/signup", multer({ storage: storageConfig }).single("pathPhoto"), (req, res) => {
-    //instructions
+// app.post("/api/users/signup", multer({ storage: storageConfig }).single("pathPhoto"), (req, res) => {
+app.post("/api/users/signup", (req, res) => {
+    
     console.log("Here into BL : Signup  (Add User)", req.body);
-    console.log("Here into BL : Signup", req.file);
+    // console.log("Here into BL : Signup", req.file);
     User.findOne({ email: req.body.email }).then(
         (response) => {
             console.log("User exist , Here User", response);
@@ -122,14 +123,14 @@ app.post("/api/users/signup", multer({ storage: storageConfig }).single("pathPho
                     (cryptedPwd) => {
                         console.log("Here crypted Pwd"), cryptedPwd;
                         req.body.pwd = cryptedPwd;
-                        if (req.file) {
-                            req.body.pathPhoto = `http://localhost:3000/shortCut/${req.file.filename}`;
-                        } else {
-                            req.body.pathPhoto = "http://localhost:3000/shortCut/avatar.png";
+                        // if (req.file) {
+                        //     req.body.pathPhoto = `http://localhost:3000/shortCut/${req.file.filename}`;
+                        // } else {
+                        //     req.body.pathPhoto = "http://localhost:3000/shortCut/avatar.png";
 
-                        }
+                        // }
 
-                        ;
+                        // ;
                         let user = new User(req.body);
                         user.save();
                         res.json({ isAdded: true });
@@ -145,7 +146,7 @@ app.post("/api/users/signup", multer({ storage: storageConfig }).single("pathPho
 });
 
 // Business Logic: Login : 
-app.post("/api/users/login", (req, res) => {
+app.post("/api/users/signin", (req, res) => {
     console.log("Here User", req.body);
     // Check If User Exist By Email
     User.findOne({ email: req.body.email }).then(
@@ -193,6 +194,25 @@ app.get("/api/users", (req, res) => {
         });
 });
 
+// Business Logic: Delete User
+app.delete("/api/users/:id", (req, res) => {
+    //instructions
+    console.log("Here into BL : Delete User", req.params.id);
+    User.deleteOne({ _id: req.params.id }).then(
+        (deleteResult) => {
+            console.log("Here delete User Result", deleteResult);
+            if (deleteResult.deletedCount == 1) {
+                res.json({ isDeleted: true });
+            } else {
+                res.json({ isDeleted: false });
+            }
+        }
+    )
+});
+
+
+
+
 
 //***** Course */
 // Business Logic: Add Course
@@ -200,7 +220,7 @@ app.post("/api/courses", (req, res) => {
     //instructions
     console.log("Here into BL : Add Course", req.body);
     // Find Teacher By Id
-    User.findById(req.body.teacherId).then(
+    User.findById(req.body.teacher).then(
         (doc) => {
             console.log("Here Teacher By ID", doc);
             if (!doc) {
@@ -211,7 +231,7 @@ app.post("/api/courses", (req, res) => {
                         name: req.body.name,
                         description: req.body.description,
                         duration: req.body.duration,
-                        teacherId: req.body.teacherId,
+                        teacher: req.body.teacher,
                         // teacherId: doc._id,
                     }
                 );
@@ -269,8 +289,12 @@ app.put("/api/courses", (req, res) => {
 app.get("/api/courses", (req, res) => {
     //instructions
     console.log("Here into BL : Get All Courses");
-    Course.find().then(
+    Course.find()
+    .populate('teacher', 'firstName email')
+    .populate('students', 'firstName email') 
+    .then(
         (docs) => {
+            console.log("docs",docs)
             res.json({ courses: docs });
         });
 });
